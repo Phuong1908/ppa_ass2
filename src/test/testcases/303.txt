@@ -1,0 +1,5 @@
+program abc;
+					var i: string;
+					begin
+					 i:= 'af''sf';
+					end.

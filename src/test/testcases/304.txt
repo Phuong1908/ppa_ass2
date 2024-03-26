@@ -1,0 +1,8 @@
+program abc;
+					begin
+					var i:integer;
+					    if true then
+					        a:=10;
+					    else
+					        i:=i-1;
+					end.

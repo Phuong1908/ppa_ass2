@@ -1,0 +1,4 @@
+program abc;
+					const i = 30.0E3;
+					begin
+					end.
