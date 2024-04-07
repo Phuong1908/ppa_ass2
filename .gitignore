@@ -1,3 +1,6 @@
 target/
-__pycache__/
-.DS_Store
+src/test/solutions/
+src/test/testcases/
+src/main/crazy/parser/.antlr
+*__pycache__
+.DS_store
