@@ -18,7 +18,22 @@ class VMSuite(unittest.TestCase):
         expect = "Redeclared identifier: var(a,real)"
         self.assertTrue(TestVM.test(input, expect, 403))
 
-    def test_minus_expression(self):
+    def test_sub_expression(self):
         input = """[[],[],[call(writeInt,[sub(3,1)])]]."""
         expect = "2"
         self.assertTrue(TestVM.test(input, expect, 404))
+
+    def test_time_expression(self):
+        input = """[[],[],[call(writeInt,[times(3,1)])]]."""
+        expect = "3"
+        self.assertTrue(TestVM.test(input, expect, 405))
+
+    def test_idiv_expression(self):
+        input = """[[],[],[call(writeInt,[idiv(5,2)])]]."""
+        expect = "2"
+        self.assertTrue(TestVM.test(input, expect, 406))
+
+    def test_imod_expression(self):
+        input = """[[],[],[call(writeInt,[imod(5,2)])]]."""
+        expect = "1"
+        self.assertTrue(TestVM.test(input, expect, 407))

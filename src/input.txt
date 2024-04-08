@@ -1,1 +1,1 @@
-[[],[],[call(writeInt,[3])]].
+[[],[],[call(writeInt,[times(3,1)])]].
