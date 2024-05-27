@@ -59,83 +59,81 @@ get_type_expression(_, band(_, _), boolean).
 get_type_expression(_, bor(_, _), boolean).
 
 % Numerical expressions
-get_type_expression(_, add(X, Y), integer) :- 
-    get_type_expression(_, X, TX),
-    get_type_expression(_, Y, TY),
-    TX = integer,
-    TY = integer.
-get_type_expression(_, add(X, Y), float) :- 
-    (get_type_expression(_, X, TX), TX = float;
-    get_type_expression(_, Y, TY), TY = float).
-get_type_expression(_, sub(X, Y), integer) :- 
-    get_type_expression(_, X, TX),
-    get_type_expression(_, Y, TY),
-    TX = integer,
-    TY = integer.
-get_type_expression(_, sub(X, Y), float) :- 
-    (get_type_expression(_, X, TX), TX = float;
-    get_type_expression(_, Y, TY), TY = float).
-get_type_expression(_, times(X, Y), integer) :- 
-    get_type_expression(_, X, TX),
-    get_type_expression(_, Y, TY),
-    TX = integer,
-    TY = integer.
-get_type_expression(_, times(X, Y), float) :- 
-    (get_type_expression(_, X, TX), TX = float;
-    get_type_expression(_, Y, TY), TY = float).
-get_type_expression(_, rdiv(X, Y), integer) :- 
-    get_type_expression(_, X, TX),
-    get_type_expression(_, Y, TY),
-    TX = integer,
-    TY = integer.
-get_type_expression(_, rdiv(X, Y), float) :- 
-    (get_type_expression(_, X, TX), TX = float;
-    get_type_expression(_, Y, TY), TY = float).
+get_type_expression(Env, add(X, Y), integer) :- 
+    get_type_expression(Env, X, integer),
+    get_type_expression(Env, Y, integer).
+get_type_expression(Env, add(X, Y), float) :- 
+    (get_type_expression(Env, X, float);
+    get_type_expression(Env, Y, float)).
+get_type_expression(Env, sub(X, Y), integer) :- 
+    get_type_expression(Env, X, integer),
+    get_type_expression(Env, Y, integer).
+get_type_expression(Env, sub(X, Y), float) :- 
+    (get_type_expression(Env, X, float);
+    get_type_expression(Env, Y, float)).
+get_type_expression(Env, times(X, Y), integer) :- 
+    get_type_expression(Env, X, integer),
+    get_type_expression(Env, Y, integer).
+get_type_expression(Env, times(X, Y), float) :- 
+    (get_type_expression(Env, X, float);
+    get_type_expression(Env, Y, float)).
+get_type_expression(Env, rdiv(X, Y), integer) :- 
+    get_type_expression(Env, X, integer),
+    get_type_expression(Env, Y, integer).
+get_type_expression(Env, rdiv(X, Y), float) :- 
+    (get_type_expression(Env, X, float);
+    get_type_expression(Env, Y, float)).
 
-get_type_expression(_, idiv(X, Y), integer) :- 
-    get_type_expression(_, X, TX),
-    get_type_expression(_, Y, TY),
-    TX = integer,
-    TY = integer.
-get_type_expression(_, imod(X, Y), integer) :- 
-    get_type_expression(_, X, TX),
-    get_type_expression(_, Y, TY),
-    TX = integer,
-    TY = integer.
+get_type_expression(Env, idiv(X, Y), integer) :- 
+    get_type_expression(Env, X, integer),
+    get_type_expression(Env, Y, integer).
+get_type_expression(Env, imod(X, Y), integer) :- 
+    get_type_expression(Env, X, integer),
+    get_type_expression(Env, Y, integer).
 
 % Relational expressions
-get_type_expression(_, greater(_), boolean).
-get_type_expression(_, less(_, _), boolean).
-get_type_expression(_, ge(_, _), boolean).
-get_type_expression(_, le(_), boolean).
-get_type_expression(_, ne(_, _), boolean).
-get_type_expression(_, eql(_, _), boolean).
+get_type_expression(Env, greater(X, Y), boolean) :-
+    get_type_expression(Env, X, _),
+    get_type_expression(Env, Y, _).
+get_type_expression(Env, less(X, Y), boolean) :-
+    get_type_expression(Env, X, _),
+    get_type_expression(Env, Y, _).
+get_type_expression(Env, ge(X, Y), boolean) :-
+    get_type_expression(Env, X, _),
+    get_type_expression(Env, Y, _).
+get_type_expression(Env, le(X, Y), boolean) :-
+    get_type_expression(Env, X, _),
+    get_type_expression(Env, Y, _).
+get_type_expression(Env, ne(X, Y), boolean) :-
+    get_type_expression(Env, X, _),
+    get_type_expression(Env, Y, _).
+get_type_expression(Env, eql(X, Y), boolean) :-
+    get_type_expression(Env, X, _),
+    get_type_expression(Env, Y, _).
 
 % Type check assignment
-type_check_assignment(_, _, _).
-type_check_assignment(_, integer, Y) :- get_type_expression(_, Y, integer).
-type_check_assignment(_, real, Y) :- get_type_expression(_, Y, real).
-type_check_assignment(_, string, Y) :- get_type_expression(_, Y, string).
-type_check_assignment(_, boolean, Y) :- get_type_expression(_, Y, boolean).
+type_check_assignment(Env, integer, Y) :- get_type_expression(Env, Y, integer).
+type_check_assignment(Env, real, Y) :- get_type_expression(Env, Y, real).
+type_check_assignment(Env, string, Y) :- get_type_expression(Env, Y, string).
+type_check_assignment(Env, boolean, Y) :- get_type_expression(Env, Y, boolean).
 
 % Type checking one statement
 type_check_stmt(Env, assign(X, Y)) :- 
-    lookup(Env, X, T),
+    lookup(Env, X, id(X, _, T)),
     type_check_assignment(Env, T, Y).
 
 % Type checking for a call statement
 % Built-in functions
 type_check_stmt(Env, call(writeInt, [X])) :- get_type_expression(Env, X, integer).
 type_check_stmt(Env, call(writeIntLn, [X])) :- get_type_expression(Env, X, integer).
-type_check_stmt(Env, call(writeReal, [X])) :- get_type_expression(Env, X, float).
-type_check_stmt(Env, call(writeRealLn, [X])) :- get_type_expression(Env, X, float).
+type_check_stmt(Env, call(writeReal, [X])) :- get_type_expression(Env, X, real).
+type_check_stmt(Env, call(writeRealLn, [X])) :- get_type_expression(Env, X, real).
 type_check_stmt(Env, call(writeBool, [X])) :- get_type_expression(Env, X, boolean).
 type_check_stmt(Env, call(writeBoolLn, [X])) :- get_type_expression(Env, X, boolean).
 type_check_stmt(Env, call(writeStrLn, [X])) :- get_type_expression(Env, X, string).
 type_check_stmt(Env, call(writeStrLn, [X])) :- get_type_expression(Env, X, string).
 
-% User-defined functions
-									
+% User-defined functions									
 % Type check one block										
 type_check_body(_, []).
 type_check_body(env(L, B, T), [var(X, Y) | _]) :- 
@@ -256,7 +254,66 @@ reduce_stmt(config([Stmt | Stmts], Env), Env1) :-
     reduce_stmt(config(Stmts, Env2), Env1).
 
 % Handle call(writeInt, [X]) statement
-reduce_stmt(config(call(writeInt, [X]), Env), Env) :-
+% Handle call statements, including built-in and user-defined functions
+reduce_stmt(config(call(Func, Args), Env), Env) :-
+    (is_builtin(Func) -> 
+        handle_builtin(Func, Args, Env); 
+        handle_user_defined(Func, Args, Env)).
+
+% Handle built-in functions like writeInt
+handle_builtin(writeInt, [X], Env) :-
     reduce_all(config(X, Env), config(V, Env)),
     write(V),
-    flush_output.  % Ensure the output is flushed
+    flush_output.
+
+% Add handling for other built-in functions if required
+handle_builtin(writeIntLn, [X], Env) :-
+    reduce_all(config(X, Env), config(V, Env)),
+    writeln(V),
+    flush_output.
+
+handle_builtin(writeReal, [X], Env) :-
+    reduce_all(config(X, Env), config(V, Env)),
+    write(V),
+    flush_output.
+
+handle_builtin(writeRealLn, [X], Env) :-
+    reduce_all(config(X, Env), config(V, Env)),
+    writeln(V),
+    flush_output.
+
+handle_builtin(writeBool, [X], Env) :-
+    reduce_all(config(X, Env), config(V, Env)),
+    write(V),
+    flush_output.
+
+handle_builtin(writeBoolLn, [X], Env) :-
+    reduce_all(config(X, Env), config(V, Env)),
+    writeln(V),
+    flush_output.
+
+handle_builtin(writeStrLn, [X], Env) :-
+    reduce_all(config(X, Env), config(V, Env)),
+    writeln(V),
+    flush_output.
+
+handle_builtin(writeStr, [X], Env) :-
+    reduce_all(config(X, Env), config(V, Env)),
+    write(V),
+    flush_output.
+
+% Handle user-defined functions
+handle_user_defined(Func, Args, Env) :-
+    lookup(Env, Func, id(Func, proc, proc(Params, Body))),
+    create_env(Params, env([], 0, 0), LocalEnv),
+    bind_args(Params, Args, LocalEnv, Env1),
+    reduce_stmt(config(Body, env(Env1, 0, 0)), _).
+
+% Bind arguments to parameters in the local environment
+bind_args([], [], Env, Env).
+bind_args([param(P, _) | Params], [Arg | Args], LocalEnv, Env) :-
+    reduce_all(config(Arg, Env), config(Value, Env)),
+    create_env([var(P, Value)], LocalEnv, Env1),
+    bind_args(Params, Args, Env1, Env).
+
+% Ensure other parts of the code remain unchanged

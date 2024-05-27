@@ -49,3 +49,18 @@ class VMSuite(unittest.TestCase):
         input = """[[],[],[call(writeInt,[add(3,times(5,add(2,1)))])]]."""
         expect = "18"
         self.assertTrue(TestVM.test(input, expect, 409))
+
+    def test_builtin_writeBool(self):
+        input = """[[],[],[call(writeBool,[true])]]."""
+        expect = "true"
+        self.assertTrue(TestVM.test(input, expect, 410))
+
+    def test_builtin_writeReal(self):
+        input = """[[],[],[call(writeReal,[3.14])]]."""
+        expect = "3.14"
+        self.assertTrue(TestVM.test(input, expect, 411))
+
+    def test_builtin_writeIntLn(self):
+        input = """[[],[],[call(writeIntLn,[3])]]."""
+        expect = "3\n"
+        self.assertTrue(TestVM.test(input, expect, 412))
