@@ -15,19 +15,19 @@ reduce_prog([Var, Func, Body]) :-
     reduce_stmt(config(Body, REnv), _).
 
 % Error handling
-process(type_mismatch(X)):- write('Type mismatch: '), write(X), !. 
-process(undeclare_identifier(X)):- write('Undeclared identifier: '), write(X), !. 
-process(wrong_number_of_argument(X)):- write('Wrong number of arguments: '), write(X), !. 
-process(redeclare_identifier(X)):- write('Redeclared identifier: '), write(X), !. 
-process(redeclare_function(X)):- write('Redeclared function: '), write(X), !. 
-process(redeclare_procedure(X)):- write('Redeclared procedure: '), write(X), !. 
-process(undeclare_function(X)):- write('Undeclared function: '), write(X), !. 
-process(undeclare_procedure(X)):- write('Undeclared procedure: '), write(X), !. 
-process(break_not_in_loop(X)):- write('Break not in a loop: '), write(X), !. 
-process(continue_not_in_loop(X)):- write('Continue not in a loop: '), write(X), !. 
+process(type_mismatch(X)):- write('Type mismatch: '), write(X), !.
+process(undeclare_identifier(X)):- write('Undeclared identifier: '), write(X), !.
+process(wrong_number_of_argument(X)):- write('Wrong number of arguments: '), write(X), !.
+process(redeclare_identifier(X)):- write('Redeclared identifier: '), write(X), !.
+process(redeclare_function(X)):- write('Redeclared function: '), write(X), !.
+process(redeclare_procedure(X)):- write('Redeclared procedure: '), write(X), !.
+process(undeclare_function(X)):- write('Undeclared function: '), write(X), !.
+process(undeclare_procedure(X)):- write('Undeclared procedure: '), write(X), !.
+process(break_not_in_loop(X)):- write('Break not in a loop: '), write(X), !.
+process(continue_not_in_loop(X)):- write('Continue not in a loop: '), write(X), !.
 process(cannot_assign(X)) :- write('Cannot assign to a constant: '), write(X), !.
-process(outofbound(X)):- write('Index out of bound: '), write(X), !. 
-process(invalid_expression(X)):- write('Invalid expression: '), write(X), !. 
+process(outofbound(X)):- write('Index out of bound: '), write(X), !.
+process(invalid_expression(X)):- write('Invalid expression: '), write(X), !.
 
 % Lookup in symbol table
 lookup(env([], _, _), X, _) :- throw(undeclare_identifier(X)).
@@ -124,14 +124,9 @@ type_check_stmt(Env, assign(X, Y)) :-
 
 % Type checking for a call statement
 % Built-in functions
-type_check_stmt(Env, call(writeInt, [X])) :- get_type_expression(Env, X, integer).
-type_check_stmt(Env, call(writeIntLn, [X])) :- get_type_expression(Env, X, integer).
-type_check_stmt(Env, call(writeReal, [X])) :- get_type_expression(Env, X, real).
-type_check_stmt(Env, call(writeRealLn, [X])) :- get_type_expression(Env, X, real).
-type_check_stmt(Env, call(writeBool, [X])) :- get_type_expression(Env, X, boolean).
-type_check_stmt(Env, call(writeBoolLn, [X])) :- get_type_expression(Env, X, boolean).
-type_check_stmt(Env, call(writeStrLn, [X])) :- get_type_expression(Env, X, string).
-type_check_stmt(Env, call(writeStrLn, [X])) :- get_type_expression(Env, X, string).
+type_check_stmt(Env, call(Func, [X])) :- 
+    (is_write_func(Func); is_write_ln_func(Func)),
+    get_type_expression(Env, X, _).
 
 % User-defined functions									
 % Type check one block										
@@ -197,6 +192,18 @@ is_builtin(writeLn).
 is_builtin(writeStrLn).
 is_builtin(writeStr).
 
+% Check if the function is a write function
+is_write_func(writeInt).
+is_write_func(writeReal).
+is_write_func(writeBool).
+is_write_func(writeStr).
+
+% Check if the function is a writeLn function
+is_write_ln_func(writeIntLn).
+is_write_ln_func(writeRealLn).
+is_write_ln_func(writeBoolLn).
+is_write_ln_func(writeStrLn).
+
 % For runtime
 create_runtime_env(X, X).
 
@@ -237,6 +244,7 @@ reduce(config(imod(E1, E2), Env), config(R, Env)) :-
 
 % Reduce all expressions in the list until there is no expression to reduce
 reduce_all(config(V, Env), config(V, Env)) :- number(V), !.
+reduce_all(config(V, Env), config(V, Env)) :- boolean(V), !.
 reduce_all(config(E, Env), config(E2, Env)) :-
     reduce(config(E, Env), config(E1, Env)), !,
     reduce_all(config(E1, Env), config(E2, Env)).
@@ -260,46 +268,11 @@ reduce_stmt(config(call(Func, Args), Env), Env) :-
         handle_builtin(Func, Args, Env); 
         handle_user_defined(Func, Args, Env)).
 
-% Handle built-in functions like writeInt
-handle_builtin(writeInt, [X], Env) :-
+% Handle built-in functions generically
+handle_builtin(Func, [X], Env) :-
     reduce_all(config(X, Env), config(V, Env)),
-    write(V),
-    flush_output.
-
-% Add handling for other built-in functions if required
-handle_builtin(writeIntLn, [X], Env) :-
-    reduce_all(config(X, Env), config(V, Env)),
-    writeln(V),
-    flush_output.
-
-handle_builtin(writeReal, [X], Env) :-
-    reduce_all(config(X, Env), config(V, Env)),
-    write(V),
-    flush_output.
-
-handle_builtin(writeRealLn, [X], Env) :-
-    reduce_all(config(X, Env), config(V, Env)),
-    writeln(V),
-    flush_output.
-
-handle_builtin(writeBool, [X], Env) :-
-    reduce_all(config(X, Env), config(V, Env)),
-    write(V),
-    flush_output.
-
-handle_builtin(writeBoolLn, [X], Env) :-
-    reduce_all(config(X, Env), config(V, Env)),
-    writeln(V),
-    flush_output.
-
-handle_builtin(writeStrLn, [X], Env) :-
-    reduce_all(config(X, Env), config(V, Env)),
-    writeln(V),
-    flush_output.
-
-handle_builtin(writeStr, [X], Env) :-
-    reduce_all(config(X, Env), config(V, Env)),
-    write(V),
+    (is_write_func(Func) -> write(V) ; true),
+    (is_write_ln_func(Func) -> writeln(V) ; true),
     flush_output.
 
 % Handle user-defined functions
