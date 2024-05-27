@@ -245,6 +245,7 @@ reduce(config(imod(E1, E2), Env), config(R, Env)) :-
 % Reduce all expressions in the list until there is no expression to reduce
 reduce_all(config(V, Env), config(V, Env)) :- number(V), !.
 reduce_all(config(V, Env), config(V, Env)) :- boolean(V), !.
+reduce_all(config(str(V), Env), config(V, Env)) :- !.
 reduce_all(config(E, Env), config(E2, Env)) :-
     reduce(config(E, Env), config(E1, Env)), !,
     reduce_all(config(E1, Env), config(E2, Env)).

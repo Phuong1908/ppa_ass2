@@ -64,3 +64,13 @@ class VMSuite(unittest.TestCase):
         input = """[[],[],[call(writeIntLn,[3])]]."""
         expect = "3\n"
         self.assertTrue(TestVM.test(input, expect, 412))
+
+    def test_builtin_writeStr(self):
+        input = """[[],[],[call(writeStr,[str("Hello, World!")])]]."""
+        expect = "Hello, World!"
+        self.assertTrue(TestVM.test(input, expect, 413))
+
+    def test_builtin_writeStrLn(self):
+        input = """[[],[],[call(writeStrLn,[str("Hello, World!")])]]."""
+        expect = "Hello, World!\n"
+        self.assertTrue(TestVM.test(input, expect, 414))
