@@ -210,39 +210,42 @@ is_write_ln_func(writeStrLn).
 create_runtime_env(X, X).
 
 % Reduce expressions
-reduce(config(add(E1, E2), Env), config(R, Env)) :-
+% General reduce predicate for arithmetic operations
+reduce_arith(config(Op, E1, E2), Env, R) :-
     reduce_all(config(E1, Env), config(V1, Env)),
     reduce_all(config(E2, Env), config(V2, Env)),
-    R is V1 + V2.
+    arith_op(Op, V1, V2, R).
 
+arith_op(add, V1, V2, R) :- R is V1 + V2.
+arith_op(sub, V1, V2, R) :- R is V1 - V2.
+arith_op(times, V1, V2, R) :- R is V1 * V2.
+arith_op(rdiv, V1, V2, R) :- R is V1 / V2.
+arith_op(idiv, V1, V2, R) :- R is V1 // V2.
+arith_op(imod, V1, V2, R) :- R is mod(V1, V2).
+
+% Reduce for unary subtraction
 reduce(config(sub(E1), Env), config(R, Env)) :-
     reduce_all(config(E1, Env), config(V1, Env)),
     R is -V1.
 
+% Specific reduce predicates using the general one
+reduce(config(add(E1, E2), Env), config(R, Env)) :-
+    reduce_arith(config(add, E1, E2), Env, R).
+
 reduce(config(sub(E1, E2), Env), config(R, Env)) :-
-    reduce_all(config(E1, Env), config(V1, Env)),
-    reduce_all(config(E2, Env), config(V2, Env)),
-    R is V1 - V2.
+    reduce_arith(config(sub, E1, E2), Env, R).
 
 reduce(config(times(E1, E2), Env), config(R, Env)) :-
-    reduce_all(config(E1, Env), config(V1, Env)),
-    reduce_all(config(E2, Env), config(V2, Env)),
-    R is V1 * V2.
+    reduce_arith(config(times, E1, E2), Env, R).
 
 reduce(config(rdiv(E1, E2), Env), config(R, Env)) :-
-    reduce_all(config(E1, Env), config(V1, Env)),
-    reduce_all(config(E2, Env), config(V2, Env)),
-    R is V1 / V2.
+    reduce_arith(config(rdiv, E1, E2), Env, R).
 
 reduce(config(idiv(E1, E2), Env), config(R, Env)) :-
-    reduce_all(config(E1, Env), config(V1, Env)),
-    reduce_all(config(E2, Env), config(V2, Env)),
-    R is V1 // V2.
+    reduce_arith(config(idiv, E1, E2), Env, R).
 
 reduce(config(imod(E1, E2), Env), config(R, Env)) :-
-    reduce_all(config(E1, Env), config(V1, Env)),
-    reduce_all(config(E2, Env), config(V2, Env)),
-    R is mod(V1, V2).
+    reduce_arith(config(imod, E1, E2), Env, R).
 
 % Reduce all expressions in the list until there is no expression to reduce
 reduce_all(config(V, Env), config(V, Env)) :- number(V), !.
