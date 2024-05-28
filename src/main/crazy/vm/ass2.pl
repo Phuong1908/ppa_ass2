@@ -93,24 +93,30 @@ get_type_expression(Env, imod(X, Y), integer) :-
 
 % Relational expressions
 get_type_expression(Env, greater(X, Y), boolean) :-
-    get_type_expression(Env, X, _),
-    get_type_expression(Env, Y, _).
+    get_type_rel_op(Env, greater, X, Y, boolean).
 get_type_expression(Env, less(X, Y), boolean) :-
-    get_type_expression(Env, X, _),
-    get_type_expression(Env, Y, _).
+    get_type_rel_op(Env, less, X, Y, boolean).
 get_type_expression(Env, ge(X, Y), boolean) :-
-    get_type_expression(Env, X, _),
-    get_type_expression(Env, Y, _).
+    get_type_rel_op(Env, ge, X, Y, boolean).
 get_type_expression(Env, le(X, Y), boolean) :-
-    get_type_expression(Env, X, _),
-    get_type_expression(Env, Y, _).
+    get_type_rel_op(Env, le, X, Y, boolean).
 get_type_expression(Env, ne(X, Y), boolean) :-
-    get_type_expression(Env, X, _),
-    get_type_expression(Env, Y, _).
+    get_type_rel_op(Env, ne, X, Y, boolean).
 get_type_expression(Env, eql(X, Y), boolean) :-
-    get_type_expression(Env, X, _),
-    get_type_expression(Env, Y, _).
+    get_type_rel_op(Env, eql, X, Y, boolean).
 
+% General get type predicate for relational operations
+get_type_rel_op(Env, Op, X, Y, boolean) :-
+    get_type_expression(Env, X, _),
+    get_type_expression(Env, Y, _),
+    rel_op(Op).
+
+rel_op(greater).
+rel_op(less).
+rel_op(ge).
+rel_op(le).
+rel_op(ne).
+rel_op(eql).
 % Element expressions
 
 % Type check assignment
