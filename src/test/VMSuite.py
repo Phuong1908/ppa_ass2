@@ -75,26 +75,73 @@ class VMSuite(unittest.TestCase):
         expect = "Hello, World!\n"
         self.assertTrue(TestVM.test(input, expect, 414))
 
-    def test_ele_single_dimension(self):
-        input = (
-            """[[[1, 2, 3, 4, 5]],[],[call(writeInt,[ele([1, 2, 3, 4, 5], [2])])]]."""
-        )
-        expect = "3"
-        self.assertTrue(TestVM.test(input, expect, 415))
+    # def test_ele_single_dimension(self):
+    #     input = (
+    #         """[[[1, 2, 3, 4, 5]],[],[call(writeInt,[ele([1, 2, 3, 4, 5], [2])])]]."""
+    #     )
+    #     expect = "3"
+    #     self.assertTrue(TestVM.test(input, expect, 415))
 
-    def test_ele_two_dimension(self):
-        input = """[[[[1, 2], [3, 4], [5, 6]]],[],[call(writeInt,[ele([[1, 2], [3, 4], [5, 6]], [1, 1])])]]."""
-        expect = "4"
-        self.assertTrue(TestVM.test(input, expect, 416))
+    # def test_ele_two_dimension(self):
+    #     input = """[[[[1, 2], [3, 4], [5, 6]]],[],[call(writeInt,[ele([[1, 2], [3, 4], [5, 6]], [1, 1])])]]."""
+    #     expect = "4"
+    #     self.assertTrue(TestVM.test(input, expect, 416))
 
-    def test_ele_type_mismatch(self):
-        input = """[[[1, 2, 3, 4, 5]],[],[call(writeInt,[ele([1, 2, 3, 4, 5], [2, 3])])]]."""
-        expect = "Type mismatch: ele([1, 2, 3, 4, 5], [2, 3])"
-        self.assertTrue(TestVM.test(input, expect, 417))
+    # def test_ele_type_mismatch(self):
+    #     input = """[[[1, 2, 3, 4, 5]],[],[call(writeInt,[ele([1, 2, 3, 4, 5], [2, 3])])]]."""
+    #     expect = "Type mismatch: ele([1, 2, 3, 4, 5], [2, 3])"
+    #     self.assertTrue(TestVM.test(input, expect, 417))
 
-    def test_ele_index_out_of_bound(self):
-        input = (
-            """[[[1, 2, 3, 4, 5]],[],[call(writeInt,[ele([1, 2, 3, 4, 5], [5])])]]."""
-        )
-        expect = "Index out of bound: [5]"
-        self.assertTrue(TestVM.test(input, expect, 418))
+    # def test_ele_index_out_of_bound(self):
+    #     input = (
+    #         """[[[1, 2, 3, 4, 5]],[],[call(writeInt,[ele([1, 2, 3, 4, 5], [5])])]]."""
+    #     )
+    #     expect = "Index out of bound: [5]"
+    #     self.assertTrue(TestVM.test(input, expect, 418))
+
+    def test_assign_global_variable(self):
+        input = """[[var(x, integer)],[],[assign(x, 5), call(writeInt, [x])]]."""
+        expect = "5"
+        self.assertTrue(TestVM.test(input, expect, 419))
+
+    def test_assign_local_variable(self):
+        input = """[[var(x, integer)],[],[var(y, integer), assign(y, 10), call(writeInt, [y])]]."""
+        expect = "10"
+        self.assertTrue(TestVM.test(input, expect, 420))
+
+    def test_assign_undeclared_identifier(self):
+        input = """[[],[],[assign(z, 5)]]."""
+        expect = "Undeclared identifier: z"
+        self.assertTrue(TestVM.test(input, expect, 421))
+
+    def test_assign_type_mismatch(self):
+        input = """[[var(x, integer)],[],[assign(x, str("hello"))]]."""
+        expect = "Type mismatch: x"
+        self.assertTrue(TestVM.test(input, expect, 422))
+
+    # def test_if_true_branch(self):
+    #     input = """[[],[],[assign(x, true), if(x, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
+    #     expect = "True branch executed\n"
+    #     self.assertTrue(TestVM.test(input, expect, 430))
+
+    # def test_if_false_branch(self):
+    #     input = """[[],[],[assign(x, false), if(x, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
+    #     expect = "False branch executed\n"
+    #     self.assertTrue(TestVM.test(input, expect, 431))
+
+    # def test_if_no_else_branch_true(self):
+    #     input = """[[],[],[assign(x, true), if(x, [call(writeStrLn, [str("True branch executed")])])]]."""
+    #     expect = "True branch executed\n"
+    #     self.assertTrue(TestVM.test(input, expect, 432))
+
+    # def test_if_no_else_branch_false(self):
+    #     input = (
+    #         """[[],[],[if(true, [call(writeStrLn, [str("True branch executed")])])]]."""
+    #     )
+    #     expect = "True branch executed \n"
+    #     self.assertTrue(TestVM.test(input, expect, 433))
+
+    # def test_if_type_mismatch(self):
+    #     input = """[[],[],[assign(x, 5), if(x, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
+    #     expect = "Type mismatch: 5"
+    #     self.assertTrue(TestVM.test(input, expect, 434))

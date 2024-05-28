@@ -187,6 +187,26 @@ create_env([var(X, Y) | L], env(L1, B, T), L2) :-
     T1 is T + 1, 
     create_env(L, env([id(X, var, Y) | L1], B, T1), L2).
 
+% Update the variable in the environment
+update_var(I, V, env(L, B, T), env(L1, B, T)) :-
+    update_var_list(I, V, L, L1).
+
+% Update the variable in the list
+update_var_list(I, _, [], _) :- throw(undeclare_identifier(I)).
+update_var_list(I, V, [id(I, Type, _) | L], [id(I, Type, V) | L]) :- !.
+update_var_list(I, V, [H | L], [H | L1]) :-
+    update_var_list(I, V, L, L1).
+
+% Print the environment for debugging
+print_env(env(L, _, _)) :-
+    writeln("Environment:"),
+    print_env_list(L).
+
+print_env_list([]).
+print_env_list([id(X, Type, V) | L]) :-
+    format("~w: ~w = ~w~n", [Type, X, V]),
+        print_env_list(L).
+
 is_builtin(readInt).
 is_builtin(writeIntLn).
 is_builtin(writeInt).
@@ -253,6 +273,12 @@ reduce(config(idiv(E1, E2), Env), config(R, Env)) :-
 reduce(config(imod(E1, E2), Env), config(R, Env)) :-
     reduce_arith(config(imod, E1, E2), Env, R).
 
+reduce(config(I, Env), config(V, Env)) :-
+    atom1(I),
+    lookup(Env, I, id(I, _, V)).
+
+reduce(config(E, Env), config(E, Env)).
+
 % Reduce all expressions in the list until there is no expression to reduce
 reduce_all(config(V, Env), config(V, Env)) :- number(V), !.
 reduce_all(config(V, Env), config(V, Env)) :- boolean(V), !.
@@ -272,6 +298,28 @@ reduce_stmt(config([], Env), Env).
 reduce_stmt(config([Stmt | Stmts], Env), Env1) :-
     reduce_stmt(config(Stmt, Env), Env2),
     reduce_stmt(config(Stmts, Env2), Env1).
+% Reduce an if statement
+reduce_stmt(config(if(E, S1, S2), Env), Env1) :-
+    reduce_all(config(E, Env), config(V, Env)),
+    (boolean(V) -> 
+        (V == true -> reduce_stmt(config(S1, Env), Env1) ; reduce_stmt(config(S2, Env), Env1))
+    ;
+        throw(type_mismatch(E))
+    ).
+
+reduce_stmt(config(if(E, S1), Env), Env1) :-
+    reduce_all(config(E, Env), config(V, Env)),
+    (boolean(V) -> 
+        (V == true -> reduce_stmt(config(S1, Env), Env1) ; Env1 = Env)
+    ;
+        throw(type_mismatch(E))
+    ).
+
+% Reduce an assignment statement
+reduce_stmt(config(assign(I, E1), Env), Env1) :-
+    lookup(Env, I, _),
+    reduce_all(config(E1, Env), config(V, Env)),
+    update_var(I, V, Env, Env1).
 
 % Handle call(writeInt, [X]) statement
 % Handle call statements, including built-in and user-defined functions
