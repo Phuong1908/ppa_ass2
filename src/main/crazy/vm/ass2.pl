@@ -111,6 +111,8 @@ get_type_expression(Env, eql(X, Y), boolean) :-
     get_type_expression(Env, X, _),
     get_type_expression(Env, Y, _).
 
+% Element expressions
+
 % Type check assignment
 type_check_assignment(Env, integer, Y) :- get_type_expression(Env, Y, integer).
 type_check_assignment(Env, real, Y) :- get_type_expression(Env, Y, real).
@@ -289,5 +291,3 @@ bind_args([param(P, _) | Params], [Arg | Args], LocalEnv, Env) :-
     reduce_all(config(Arg, Env), config(Value, Env)),
     create_env([var(P, Value)], LocalEnv, Env1),
     bind_args(Params, Args, Env1, Env).
-
-% Ensure other parts of the code remain unchanged
