@@ -8,7 +8,7 @@ go :- 	open('input.txt', read, Stream),
         close(Stream1).
 
 reduce_prog([Var, Func, Body]) :-
-    create_env(Var, env([], 0, 0), Env), % Init env from the the global env
+    create_env(Var, env([], 0, 0), Env), % Init env from the global env
     type_check_func(Env, Func, Env1), % Do type check in the function/procedure body
     type_check_body(Env1, Body), % Do type check in the program body
     create_runtime_env(Env1, REnv),
@@ -117,7 +117,6 @@ rel_op(ge).
 rel_op(le).
 rel_op(ne).
 rel_op(eql).
-% Element expressions
 
 % Type check assignment
 type_check_assignment(Env, integer, Y) :- get_type_expression(Env, Y, integer).
@@ -145,7 +144,6 @@ type_check_body(env(L, B, T), [var(X, Y) | _]) :-
 type_check_body(env(L, B, T), [var(X, Y) | L1]) :- 
     T1 is T + 1, 
     type_check_body(env([id(X, var, Y) | L], B, T1), L1), !.
-
 type_check_body(Env, [X | L]) :- 
     type_check_stmt(Env, X), 
     type_check_body(Env, L).
@@ -169,7 +167,7 @@ type_check_func(env(Env, B, T), [proc(X, Y, Z) | L], Env1) :-
     type_check_func(env([id(X, proc, proc(Y, Z)) | Env], B, T1), L, Env1).
 
 % Check if X has been declared in the symbol table from B+1 to T
-has_declared(X, env([id(X, _, _) | _], B, T)):- 
+has_declared(X, env([id(X, _, _) | _], B, T)) :- 
     T > B, !.
 has_declared(X, env([_ | L], B, T)) :- 
     T1 is T - 1, 
@@ -293,11 +291,18 @@ reduce_all(config([S | L], Env), config([S1 | L1], Env1)) :-
     reduce_all(config(S, Env), config(S1, Env)),
     reduce_all(config(L, Env), config(L1, Env1)).
 
-% Reduce a list of statements
+% Reduce a list of statements (body)
 reduce_stmt(config([], Env), Env).
+reduce_stmt(config([var(X, Type) | Stmts], Env), Env1) :- % Handle variable declarations
+    ( has_declared(X, Env) ->
+        throw(redeclare_identifier(var(X, Type)))
+    ; NewEnv = env([id(X, var, Type) | Env], 0, 0), % Add the variable to the environment
+      reduce_stmt(config(Stmts, NewEnv), Env1)
+    ).
 reduce_stmt(config([Stmt | Stmts], Env), Env1) :-
     reduce_stmt(config(Stmt, Env), Env2),
     reduce_stmt(config(Stmts, Env2), Env1).
+
 % Reduce an if statement
 reduce_stmt(config(if(E, S1, S2), Env), Env1) :-
     reduce_all(config(E, Env), config(V, Env)),
@@ -321,7 +326,6 @@ reduce_stmt(config(assign(I, E1), Env), Env1) :-
     reduce_all(config(E1, Env), config(V, Env)),
     update_var(I, V, Env, Env1).
 
-% Handle call(writeInt, [X]) statement
 % Handle call statements, including built-in and user-defined functions
 reduce_stmt(config(call(Func, Args), Env), Env) :-
     (is_builtin(Func) -> 
