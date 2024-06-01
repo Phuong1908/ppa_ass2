@@ -115,8 +115,8 @@ class VMSuite(unittest.TestCase):
         self.assertTrue(TestVM.test(input, expect, 421))
 
     def test_assign_type_mismatch(self):
-        input = """[[],[],[var(x, integer), assign(x, str("hello"))]]."""
-        expect = "Type mismatch: x"
+        input = """[[],[],[var(x, integer), assign(x, true)]]."""
+        expect = "Type mismatch: assign(x,true)"
         self.assertTrue(TestVM.test(input, expect, 422))
 
     # def test_if_true_branch(self):
