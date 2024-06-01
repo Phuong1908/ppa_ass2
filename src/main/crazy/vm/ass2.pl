@@ -38,6 +38,7 @@ lookup(env([_ | L], B, T), X, Y) :- lookup(env(L, B, T), X, Y).
 atom1(true) :- !, fail.
 atom1(false) :- !, fail.
 atom1([]) :- !, fail.
+atom1(str(_)) :- !, fail.
 atom1(X) :- atom(X).
 
 % Check if X is a boolean constant
@@ -304,13 +305,6 @@ reduce_stmt(config([Stmt | Stmts], Env), Env1) :-
     reduce_stmt(config(Stmts, Env2), Env1).
 
 % Reduce an if statement
-reduce_stmt(config(if(E, S1, S2), Env), Env1) :-
-    reduce_all(config(E, Env), config(V, Env)),
-    (boolean(V) -> 
-        (V == true -> reduce_stmt(config(S1, Env), Env1) ; reduce_stmt(config(S2, Env), Env1))
-    ;
-        throw(type_mismatch(E))
-    ).
 
 reduce_stmt(config(if(E, S1), Env), Env1) :-
     reduce_all(config(E, Env), config(V, Env)),
@@ -322,9 +316,14 @@ reduce_stmt(config(if(E, S1), Env), Env1) :-
 
 % Reduce an assignment statement
 reduce_stmt(config(assign(I, E1), Env), Env1) :-
-    lookup(Env, I, _),
+    lookup(Env, I, id(I, _, DeclaredType)),
     reduce_all(config(E1, Env), config(V, Env)),
+    get_type_expression(Env, V, ValueType),
+    DeclaredType = ValueType, !,
     update_var(I, V, Env, Env1).
+
+reduce_stmt(config(assign(I, V), _), _) :-
+    throw(type_mismatch(assign(I, V))).
 
 % Handle call statements, including built-in and user-defined functions
 reduce_stmt(config(call(Func, Args), Env), Env) :-
