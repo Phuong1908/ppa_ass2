@@ -132,6 +132,22 @@ type_check_stmt(Env, call(Func, [X])) :-
     (is_write_func(Func); is_write_ln_func(Func)),
     get_type_expression(Env, X, _), !.
 
+type_check_stmt(Env, if(E, S1)) :-
+    get_type_expression(Env, E, Type),
+    (  Type = boolean
+    -> type_check_body(Env, S1)
+    ;  throw(type_mismatch(if(E, S1)))
+    ), !.
+
+type_check_stmt(Env, if(E, S1, S2)) :-
+    get_type_expression(Env, E, Type),
+    (  Type = boolean
+    -> (  type_check_body(Env, S1),
+            type_check_body(Env, S2)
+        )
+    ;  throw(type_mismatch(if(E, S1, S2)))
+    ), !.
+
 % Type check one block
 type_check_body(_, []) :- !.
 type_check_body(env(L, B, T), [var(X, Y) | _]) :- 
@@ -302,9 +318,17 @@ reduce_stmt(config([Stmt | Stmts], Env), Env1) :-
 % Reduce an if statement
 reduce_stmt(config(if(E, S1), Env), Env1) :-
     reduce_all(config(E, Env), config(V, Env)),
-    (boolean(V) -> 
-        (V == true -> reduce_stmt(config(S1, Env), Env1) ; Env1 = Env)
-    ; throw(type_mismatch(E))
+    (  V == true
+    -> reduce_stmt(config(S1, Env), Env1)
+    ;  Env1 = Env
+    ), !.
+
+% Reduce an if-else statement
+reduce_stmt(config(if(E, S1, S2), Env), Env1) :-
+    reduce_all(config(E, Env), config(V, Env)),
+    (  V == true
+    -> reduce_stmt(config(S1, Env), Env1)
+    ;  reduce_stmt(config(S2, Env), Env1)
     ), !.
 
 % Reduce an assignment statement

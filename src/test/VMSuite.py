@@ -119,29 +119,27 @@ class VMSuite(unittest.TestCase):
         expect = "Type mismatch: assign(x,true)"
         self.assertTrue(TestVM.test(input, expect, 422))
 
-    # def test_if_true_branch(self):
-    #     input = """[[],[],[assign(x, true), if(x, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
-    #     expect = "True branch executed\n"
-    #     self.assertTrue(TestVM.test(input, expect, 430))
+    def test_if_true_branch(self):
+        input = """[[var(x, integer)],[],[if(true, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
+        expect = "True branch executed\n"
+        self.assertTrue(TestVM.test(input, expect, 430))
 
-    # def test_if_false_branch(self):
-    #     input = """[[],[],[assign(x, false), if(x, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
-    #     expect = "False branch executed\n"
-    #     self.assertTrue(TestVM.test(input, expect, 431))
+    def test_if_false_branch(self):
+        input = """[[var(x, boolean)],[],[assign(x, false), if(x, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
+        expect = "False branch executed\n"
+        self.assertTrue(TestVM.test(input, expect, 431))
 
-    # def test_if_no_else_branch_true(self):
-    #     input = """[[],[],[assign(x, true), if(x, [call(writeStrLn, [str("True branch executed")])])]]."""
-    #     expect = "True branch executed\n"
-    #     self.assertTrue(TestVM.test(input, expect, 432))
+    def test_if_no_else_branch_true(self):
+        input = """[[var(x, boolean)],[],[assign(x, true), if(x, [call(writeStrLn, [str("True branch executed")])])]]."""
+        expect = "True branch executed\n"
+        self.assertTrue(TestVM.test(input, expect, 432))
 
-    # def test_if_no_else_branch_false(self):
-    #     input = (
-    #         """[[],[],[if(true, [call(writeStrLn, [str("True branch executed")])])]]."""
-    #     )
-    #     expect = "True branch executed \n"
-    #     self.assertTrue(TestVM.test(input, expect, 433))
+    def test_if_no_else_branch_false(self):
+        input = """[[var(x, boolean)],[],[assign(x, false), if(x, [call(writeStrLn, [str("True branch executed")])])]]."""
+        expect = ""
+        self.assertTrue(TestVM.test(input, expect, 433))
 
-    # def test_if_type_mismatch(self):
-    #     input = """[[],[],[assign(x, 5), if(x, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
-    #     expect = "Type mismatch: 5"
-    #     self.assertTrue(TestVM.test(input, expect, 434))
+    def test_if_type_mismatch(self):
+        input = """[[var(x, integer)],[],[assign(x, 5), if(x, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
+        expect = "Type mismatch: if(x,[call(writeStrLn,[str(True branch executed)])],[call(writeStrLn,[str(False branch executed)])])"
+        self.assertTrue(TestVM.test(input, expect, 434))
