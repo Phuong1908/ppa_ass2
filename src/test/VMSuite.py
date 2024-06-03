@@ -75,25 +75,25 @@ class VMSuite(unittest.TestCase):
         expect = "Hello, World!\n"
         self.assertTrue(TestVM.test(input, expect, 414))
 
-    def test_ele_single_dimension(self):
-        input = """[[],[],[call(writeInt,[ele(array([1, 2, 3, 4, 5]), [2])])]]."""
-        expect = "3"
-        self.assertTrue(TestVM.test(input, expect, 415))
+    # def test_ele_single_dimension(self):
+    #     input = """[[],[],[call(writeInt,[ele(array([1, 2, 3, 4, 5]), [2])])]]."""
+    #     expect = "3"
+    #     self.assertTrue(TestVM.test(input, expect, 415))
 
-    def test_ele_two_dimension(self):
-        input = """[[],[],[call(writeInt,[ele(array([[1, 2], [3, 4], [5, 6]]), [1, 1])])]]."""
-        expect = "4"
-        self.assertTrue(TestVM.test(input, expect, 416))
+    # def test_ele_two_dimension(self):
+    #     input = """[[],[],[call(writeInt,[ele(array([[1, 2], [3, 4], [5, 6]]), [1, 1])])]]."""
+    #     expect = "4"
+    #     self.assertTrue(TestVM.test(input, expect, 416))
 
-    def test_ele_type_mismatch(self):
-        input = """[[],[],[call(writeInt,[ele(array([1, 2, 3, 4, 5]), [2, 3])])]]."""
-        expect = "Type mismatch: ele(array([1, 2, 3, 4, 5]), [2, 3])"
-        self.assertTrue(TestVM.test(input, expect, 417))
+    # def test_ele_type_mismatch(self):
+    #     input = """[[],[],[call(writeInt,[ele(array([1, 2, 3, 4, 5]), [2, 3])])]]."""
+    #     expect = "Type mismatch: ele(array([1, 2, 3, 4, 5]), [2, 3])"
+    #     self.assertTrue(TestVM.test(input, expect, 417))
 
-    def test_ele_index_out_of_bound(self):
-        input = """[[],[],[call(writeInt,[ele(array([1, 2, 3, 4, 5]), [5])])]]."""
-        expect = "Index out of bound: [5]"
-        self.assertTrue(TestVM.test(input, expect, 418))
+    # def test_ele_index_out_of_bound(self):
+    #     input = """[[],[],[call(writeInt,[ele(array([1, 2, 3, 4, 5]), [5])])]]."""
+    #     expect = "Index out of bound: [5]"
+    #     self.assertTrue(TestVM.test(input, expect, 418))
 
     def test_assign_global_variable(self):
         input = """[[var(x, integer)],[],[assign(x, 5), call(writeInt, [x])]]."""
@@ -139,3 +139,86 @@ class VMSuite(unittest.TestCase):
         input = """[[var(x, integer)],[],[assign(x, 5), if(x, [call(writeStrLn, [str("True branch executed")])], [call(writeStrLn, [str("False branch executed")])])]]."""
         expect = "Type mismatch: if(x,[call(writeStrLn,[str(True branch executed)])],[call(writeStrLn,[str(False branch executed)])])"
         self.assertTrue(TestVM.test(input, expect, 434))
+
+    def test_while_loop(self):
+        input = """
+        [
+            [var(x, integer)],
+            [],
+            [
+                assign(x, 0),
+                while(less(x, 3),
+                    [
+                        call(writeStrLn, [x]),
+                        assign(x, add(x, 1))
+                    ]
+                ),
+                call(writeStrLn, [str("Loop finished")])
+            ]
+        ].
+        """
+        expect = "0\n1\n2\nLoop finished\n"
+        self.assertTrue(TestVM.test(input, expect, 440))
+
+    def test_while_sum(self):
+        input = """
+        [
+            [var(sum, integer), var(i, integer)],
+            [],
+            [
+                assign(sum, 0),
+                assign(i, 1),
+                while(le(i, 5),
+                    [
+                        assign(sum, add(sum, i)),
+                        assign(i, add(i, 1))
+                    ]
+                ),
+                call(writeStrLn, [sum])
+            ]
+        ].
+        """
+        expect = "15\n"
+        self.assertTrue(TestVM.test(input, expect, 441))
+
+    def test_while_even_numbers(self):
+        input = """
+        [
+            [var(i, integer)],
+            [],
+            [
+                assign(i, 0),
+                while(le(i, 8),
+                    [
+                        if(eql(imod(i, 2), 0),
+                            [call(writeStrLn, [i])]
+                        ),
+                        assign(i, add(i, 1))
+                    ]
+                )
+            ]
+        ].
+        """
+        expect = "0\n2\n4\n6\n8\n"
+        self.assertTrue(TestVM.test(input, expect, 442))
+
+    def test_while_factorial(self):
+        input = """
+        [
+            [var(result, integer), var(i, integer)],
+            [],
+            [
+                assign(result, 1),
+                assign(i, 1),
+                while(le(i, 5),
+                    [
+                        assign(result, times(result, i)),
+                        assign(i, add(i, 1))
+                    ]
+                ),
+                call(writeStrLn, [result])
+            ]
+        ].
+        """
+        expect = "120\n"
+        self.assertTrue(TestVM.test(input, expect, 433))

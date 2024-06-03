@@ -31,9 +31,9 @@ process(outofbound(X)):- write('Index out of bound: '), write(X), !.
 process(invalid_expression(X)):- write('Invalid expression: '), write(X), !.
 
 % Lookup in symbol table
-lookup(env([], _, _), X, _) :- throw(undeclare_identifier(X)).
-lookup(env([id(X, Y, Z) | _], _, _), X, id(X, Y, Z)) :- !.
-lookup(env([_ | L], B, T), X, Y) :- lookup(env(L, B, T), X, Y).
+lookup(env([], _, _), VarName, _) :- throw(undeclare_identifier(VarName)).
+lookup(env([id(VarName, VarType, Value) | _], _, _), VarName, id(VarName, VarType, Value)) :- !.
+lookup(env([_ | L], B, T), VarName, Result) :- lookup(env(L, B, T), VarName, Result).
 
 % Check if X is an identifier
 atom1(true) :- !, fail.
@@ -148,6 +148,13 @@ type_check_stmt(Env, if(E, S1, S2)) :-
     ;  throw(type_mismatch(if(E, S1, S2)))
     ), !.
 
+type_check_stmt(Env, while(E, S)) :-
+    get_type_expression(Env, E, Type),
+    (  Type = boolean
+    -> type_check_body(Env, S)
+    ;  throw(type_mismatch(while(E, S)))
+    ), !.
+
 % Type check one block
 type_check_body(_, []) :- !.
 type_check_body(env(L, B, T), [var(X, Y) | _]) :- 
@@ -195,7 +202,7 @@ create_env([var(X, Y) | _], L1, _) :-
     throw(redeclare_identifier(var(X, Y))).
 create_env([var(X, Y) | L], env(L1, B, T), L2) :- 
     T1 is T + 1, 
-    create_env(L, env([id(X, var, Y) | L1], B, T1), L2).
+    create_env(L, env([id(X, Y, _) | L1], B, T1), L2).
 
 % Update the variable in the environment
 update_var(I, V, env(L, B, T), env(L1, B, T)) :-
@@ -216,6 +223,9 @@ print_env_list([]).
 print_env_list([id(X, Type, V) | L]) :-
     format("~w: ~w = ~w~n", [Type, X, V]),
     print_env_list(L), !.
+
+debug_log(Message) :-
+    format("DEBUG: ~w~n", [Message]).
 
 is_builtin(readInt).
 is_builtin(writeIntLn).
@@ -283,6 +293,61 @@ reduce(config(idiv(E1, E2), Env), config(R, Env)) :-
 reduce(config(imod(E1, E2), Env), config(R, Env)) :-
     reduce_arith(config(imod, E1, E2), Env, R), !.
 
+% Reduce for relational operations
+reduce(config(less(E1, E2), Env), config(R, Env)) :-
+    reduce_all(config(E1, Env), config(V1, Env)),
+    reduce_all(config(E2, Env), config(V2, Env)),
+    get_type_expression(Env, less(V1, V2), boolean),
+    (  V1 < V2
+    -> R = true
+    ;  R = false
+    ), !.
+
+reduce(config(greater(E1, E2), Env), config(R, Env)) :-
+    reduce_all(config(E1, Env), config(V1, Env)),
+    reduce_all(config(E2, Env), config(V2, Env)),
+    get_type_expression(Env, greater(V1, V2), boolean),
+    (  V1 > V2
+    -> R = true
+    ;  R = false
+    ), !.
+
+reduce(config(ge(E1, E2), Env), config(R, Env)) :-
+    reduce_all(config(E1, Env), config(V1, Env)),
+    reduce_all(config(E2, Env), config(V2, Env)),
+    get_type_expression(Env, ge(V1, V2), boolean),
+    (  V1 >= V2
+    -> R = true
+    ;  R = false
+    ), !.
+
+reduce(config(le(E1, E2), Env), config(R, Env)) :-
+    reduce_all(config(E1, Env), config(V1, Env)),
+    reduce_all(config(E2, Env), config(V2, Env)),
+    get_type_expression(Env, le(V1, V2), boolean),
+    (  V1 =< V2
+    -> R = true
+    ;  R = false
+    ), !.
+
+reduce(config(ne(E1, E2), Env), config(R, Env)) :-
+    reduce_all(config(E1, Env), config(V1, Env)),
+    reduce_all(config(E2, Env), config(V2, Env)),
+    get_type_expression(Env, ne(V1, V2), boolean),
+    (  V1 \= V2
+    -> R = true
+    ;  R = false
+    ), !.
+
+reduce(config(eql(E1, E2), Env), config(R, Env)) :-
+    reduce_all(config(E1, Env), config(V1, Env)),
+    reduce_all(config(E2, Env), config(V2, Env)),
+    get_type_expression(Env, eql(V1, V2), boolean),
+    (  V1 == V2
+    -> R = true
+    ;  R = false
+    ), !.
+
 reduce(config(I, Env), config(V, Env)) :-
     atom1(I),
     lookup(Env, I, id(I, _, V)), !.
@@ -308,7 +373,7 @@ reduce_stmt(config([], Env), Env) :- !.
 reduce_stmt(config([var(X, Type) | Stmts], Env), Env1) :- % Handle variable declarations
     ( has_declared(X, Env) ->
         throw(redeclare_identifier(var(X, Type)))
-    ; NewEnv = env([id(X, var, Type) | Env], 0, 0), % Add the variable to the environment
+    ; NewEnv = env([id(X, Type, _) | Env], 0, 0), % Add the variable to the environment with the correct type
       reduce_stmt(config(Stmts, NewEnv), Env1)
     ), !.
 reduce_stmt(config([Stmt | Stmts], Env), Env1) :-
@@ -331,16 +396,25 @@ reduce_stmt(config(if(E, S1, S2), Env), Env1) :-
     ;  reduce_stmt(config(S2, Env), Env1)
     ), !.
 
-% Reduce an assignment statement
-reduce_stmt(config(assign(I, E1), Env), Env1) :-
-    lookup(Env, I, id(I, _, DeclaredType)),
-    reduce_all(config(E1, Env), config(V, Env)),
-    get_type_expression(Env, V, ValueType),
-    DeclaredType = ValueType,
-    update_var(I, V, Env, Env1), !.
+% Reduce an while statement
+reduce_stmt(config(while(E, S), Env), Env1) :-
+    reduce_all(config(E, Env), config(V, Env)),
+    (  V == true
+    -> reduce_stmt(config(S, Env), Env2),
+       reduce_stmt(config(while(E, S), Env2), Env1)
+    ;  Env1 = Env
+    ), !.
 
-reduce_stmt(config(assign(I, V), _), _) :-
-    throw(type_mismatch(assign(I, V))), !.
+% Reduce an assignment statement
+reduce_stmt(config(assign(VarName, E1), Env), Env1) :-
+    lookup(Env, VarName, id(VarName, DeclaredType, _)),
+    reduce_all(config(E1, Env), config(Value, Env)),
+    get_type_expression(Env, Value, ValueType),
+    (DeclaredType = ValueType ->
+        update_var(VarName, Value, Env, Env1)
+    ;
+        throw(type_mismatch(assign(VarName, Value)))
+    ), !.
 
 % Handle call statements, including built-in and user-defined functions
 reduce_stmt(config(call(Func, Args), Env), Env) :-
