@@ -266,3 +266,68 @@ class VMSuite(unittest.TestCase):
         """
         expect = "0\n2\n4\n6\n8\n"
         self.assertTrue(TestVM.test(input, expect, 446))
+
+    def test_loop_print_numbers(self):
+        input = """
+            [
+                [],
+                [],
+                [
+                    loop(5,
+                        [
+                            call(writeStrLn, [1]),
+                            call(writeStrLn, [2]),
+                            call(writeStrLn, [3]),
+                            call(writeStrLn, [4]),
+                            call(writeStrLn, [5])
+                        ]
+                    )
+                ]
+            ].
+        """
+        expect = "1\n2\n3\n4\n5\n1\n2\n3\n4\n5\n1\n2\n3\n4\n5\n1\n2\n3\n4\n5\n1\n2\n3\n4\n5\n"
+        self.assertTrue(TestVM.test(input, expect, 447))
+
+    def test_loop_sum(self):
+        input = """
+            [
+                [var(sum, integer)],
+                [],
+                [
+                    assign(sum, 0),
+                    loop(5,
+                        [
+                            assign(sum, add(sum, 1)),
+                            assign(sum, add(sum, 2)),
+                            assign(sum, add(sum, 3)),
+                            assign(sum, add(sum, 4)),
+                            assign(sum, add(sum, 5))
+                        ]
+                    ),
+                    call(writeStrLn, [sum])
+                ]
+            ].
+        """
+        expect = "75\n"
+        self.assertTrue(TestVM.test(input, expect, 448))
+
+    def test_loop_pattern(self):
+        input = """
+            [
+                [],
+                [],
+                [
+                    loop(3,
+                        [
+                            call(writeStrLn, [str("*")]),
+                            call(writeStrLn, [str("**")]),
+                            call(writeStrLn, [str("***")]),
+                            call(writeStrLn, [str("****")]),
+                            call(writeStrLn, [str("*****")])
+                        ]
+                    )
+                ]
+            ].
+        """
+        expect = "*\n**\n***\n****\n*****\n*\n**\n***\n****\n*****\n*\n**\n***\n****\n*****\n"
+        self.assertTrue(TestVM.test(input, expect, 448))

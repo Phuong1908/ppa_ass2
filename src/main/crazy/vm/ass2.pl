@@ -163,6 +163,13 @@ type_check_stmt(Env, do(L, E)) :-
     ;  throw(type_mismatch(do(L, E)))
     ), !.
 
+type_check_stmt(Env, loop(E, S)) :-
+    get_type_expression(Env, E, Type),
+    (  Type = integer
+    -> type_check_body(Env, S)
+    ;  throw(type_mismatch(loop(E, S)))
+    ), !.
+
 % Type check one block
 type_check_body(_, []) :- !.
 type_check_body(env(L, B, T), [var(X, Y) | _]) :- 
@@ -362,6 +369,14 @@ reduce(config(I, Env), config(V, Env)) :-
 
 reduce(config(E, Env), config(E, Env)) :- !.
 
+%Helper function for reduce_loop
+reduce_loop(0, _, Env, Env) :- !.
+reduce_loop(Count, S, Env, Env1) :-
+    Count > 0,
+    reduce_stmt(config(S, Env), Env2),
+    NextCount is Count - 1,
+    reduce_loop(NextCount, S, Env2, Env1).
+
 % Reduce all expressions in the list until there is no expression to reduce
 reduce_all(config(V, Env), config(V, Env)) :- number(V), !.
 reduce_all(config(V, Env), config(V, Env)) :- boolean(V), !.
@@ -421,6 +436,11 @@ reduce_stmt(config(do(L, E), Env), Env1) :-
     -> reduce_stmt(config(do(L, E), Env2), Env1)
     ;  Env1 = Env2
     ), !.
+
+% Reduce a loop statement
+reduce_stmt(config(loop(E, S), Env), Env1) :-
+    reduce_all(config(E, Env), config(Count, Env)),
+    reduce_loop(Count, S, Env, Env1), !.
 
 % Reduce an assignment statement
 reduce_stmt(config(assign(VarName, E1), Env), Env1) :-
