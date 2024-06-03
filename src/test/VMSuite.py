@@ -142,83 +142,127 @@ class VMSuite(unittest.TestCase):
 
     def test_while_loop(self):
         input = """
-        [
-            [var(x, integer)],
-            [],
             [
-                assign(x, 0),
-                while(less(x, 3),
-                    [
-                        call(writeStrLn, [x]),
-                        assign(x, add(x, 1))
-                    ]
-                ),
-                call(writeStrLn, [str("Loop finished")])
-            ]
-        ].
+                [var(x, integer)],
+                [],
+                [
+                    assign(x, 0),
+                    while(less(x, 3),
+                        [
+                            call(writeStrLn, [x]),
+                            assign(x, add(x, 1))
+                        ]
+                    ),
+                    call(writeStrLn, [str("Loop finished")])
+                ]
+            ].
         """
         expect = "0\n1\n2\nLoop finished\n"
         self.assertTrue(TestVM.test(input, expect, 440))
 
     def test_while_sum(self):
         input = """
-        [
-            [var(sum, integer), var(i, integer)],
-            [],
             [
-                assign(sum, 0),
-                assign(i, 1),
-                while(le(i, 5),
-                    [
-                        assign(sum, add(sum, i)),
-                        assign(i, add(i, 1))
-                    ]
-                ),
-                call(writeStrLn, [sum])
-            ]
-        ].
+                [var(sum, integer), var(i, integer)],
+                [],
+                [
+                    assign(sum, 0),
+                    assign(i, 1),
+                    while(le(i, 5),
+                        [
+                            assign(sum, add(sum, i)),
+                            assign(i, add(i, 1))
+                        ]
+                    ),
+                    call(writeStrLn, [sum])
+                ]
+            ].
         """
         expect = "15\n"
         self.assertTrue(TestVM.test(input, expect, 441))
 
     def test_while_even_numbers(self):
         input = """
-        [
-            [var(i, integer)],
-            [],
             [
-                assign(i, 0),
-                while(le(i, 8),
-                    [
-                        if(eql(imod(i, 2), 0),
-                            [call(writeStrLn, [i])]
-                        ),
-                        assign(i, add(i, 1))
-                    ]
-                )
-            ]
-        ].
+                [var(i, integer)],
+                [],
+                [
+                    assign(i, 0),
+                    while(le(i, 8),
+                        [
+                            if(eql(imod(i, 2), 0),
+                                [call(writeStrLn, [i])]
+                            ),
+                            assign(i, add(i, 1))
+                        ]
+                    )
+                ]
+            ].
         """
         expect = "0\n2\n4\n6\n8\n"
         self.assertTrue(TestVM.test(input, expect, 442))
 
     def test_while_factorial(self):
         input = """
-        [
-            [var(result, integer), var(i, integer)],
-            [],
             [
-                assign(result, 1),
-                assign(i, 1),
-                while(le(i, 5),
-                    [
-                        assign(result, times(result, i)),
-                        assign(i, add(i, 1))
-                    ]
-                ),
-                call(writeStrLn, [result])
-            ]
-        ].
+                [var(result, integer), var(i, integer)],
+                [],
+                [
+                    assign(result, 1),
+                    assign(i, 1),
+                    while(le(i, 5),
+                        [
+                            assign(result, times(result, i)),
+                            assign(i, add(i, 1))
+                        ]
+                    ),
+                    call(writeStrLn, [result])
+                ]
+            ].
         """
         expect = "120\n"
-        self.assertTrue(TestVM.test(input, expect, 433))
+        self.assertTrue(TestVM.test(input, expect, 443))
+
+    def test_do_sum(self):
+        input = """
+            [
+                [var(sum, integer), var(i, integer)],
+                [],
+                [
+                    assign(sum, 0),
+                    assign(i, 1),
+                    do(
+                        [
+                            assign(sum, add(sum, i)),
+                            assign(i, add(i, 1))
+                        ],
+                        le(i, 5)
+                    ),
+                    call(writeStrLn, [sum])
+                ]
+            ].
+        """
+        expect = "15\n"
+        self.assertTrue(TestVM.test(input, expect, 445))
+
+    def test_do_even_numbers(self):
+        input = """
+            [
+                [var(i, integer)],
+                [],
+                [
+                    assign(i, 0),
+                    do(
+                        [
+                            if(eql(imod(i, 2), 0),
+                                [call(writeStrLn, [i])]
+                            ),
+                            assign(i, add(i, 1))
+                        ],
+                        le(i, 8)
+                    )
+                ]
+            ].
+        """
+        expect = "0\n2\n4\n6\n8\n"
+        self.assertTrue(TestVM.test(input, expect, 446))

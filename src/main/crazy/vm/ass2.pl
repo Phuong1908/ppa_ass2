@@ -155,6 +155,14 @@ type_check_stmt(Env, while(E, S)) :-
     ;  throw(type_mismatch(while(E, S)))
     ), !.
 
+type_check_stmt(Env, do(L, E)) :-
+    type_check_body(Env, L),
+    get_type_expression(Env, E, Type),
+    (  Type = boolean
+    -> true
+    ;  throw(type_mismatch(do(L, E)))
+    ), !.
+
 % Type check one block
 type_check_body(_, []) :- !.
 type_check_body(env(L, B, T), [var(X, Y) | _]) :- 
@@ -403,6 +411,15 @@ reduce_stmt(config(while(E, S), Env), Env1) :-
     -> reduce_stmt(config(S, Env), Env2),
        reduce_stmt(config(while(E, S), Env2), Env1)
     ;  Env1 = Env
+    ), !.
+
+% Reduce an do statement
+reduce_stmt(config(do(L, E), Env), Env1) :-
+    reduce_stmt(config(L, Env), Env2),
+    reduce_all(config(E, Env2), config(V, Env2)),
+    (  V == true
+    -> reduce_stmt(config(do(L, E), Env2), Env1)
+    ;  Env1 = Env2
     ), !.
 
 % Reduce an assignment statement
