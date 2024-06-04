@@ -331,3 +331,63 @@ class VMSuite(unittest.TestCase):
         """
         expect = "*\n**\n***\n****\n*****\n*\n**\n***\n****\n*****\n*\n**\n***\n****\n*****\n"
         self.assertTrue(TestVM.test(input, expect, 448))
+
+    def test_bnot_true(self):
+        input = """[[var(x, boolean)],[],[assign(x, true), if(bnot(x), [call(writeStrLn, [str("x is false")])], [call(writeStrLn, [str("x is true")])])]]."""
+        expect = "x is true\n"
+        self.assertTrue(TestVM.test(input, expect, 460))
+
+    def test_bnot_false(self):
+        input = """[[var(x, boolean)],[],[assign(x, false), if(bnot(x), [call(writeStrLn, [str("x is false")])], [call(writeStrLn, [str("x is true")])])]]."""
+        expect = "x is false\n"
+        self.assertTrue(TestVM.test(input, expect, 461))
+
+    def test_band_true_true(self):
+        input = """[[var(x, boolean), var(y, boolean)],[],[assign(x, true), assign(y, true), if(band(x, y), [call(writeStrLn, [str("x and y are true")])], [call(writeStrLn, [str("x or y is false")])])]]."""
+        expect = "x and y are true\n"
+        self.assertTrue(TestVM.test(input, expect, 462))
+
+    def test_band_true_false(self):
+        input = """[[var(x, boolean), var(y, boolean)],[],[assign(x, true), assign(y, false), if(band(x, y), [call(writeStrLn, [str("x and y are true")])], [call(writeStrLn, [str("x or y is false")])])]]."""
+        expect = "x or y is false\n"
+        self.assertTrue(TestVM.test(input, expect, 463))
+
+    def test_band_false_true(self):
+        input = """[[var(x, boolean), var(y, boolean)],[],[assign(x, false), assign(y, true), if(band(x, y), [call(writeStrLn, [str("x and y are true")])], [call(writeStrLn, [str("x or y is false")])])]]."""
+        expect = "x or y is false\n"
+        self.assertTrue(TestVM.test(input, expect, 464))
+
+    def test_band_false_false(self):
+        input = """[[var(x, boolean), var(y, boolean)],[],[assign(x, false), assign(y, false), if(band(x, y), [call(writeStrLn, [str("x and y are true")])], [call(writeStrLn, [str("x or y is false")])])]]."""
+        expect = "x or y is false\n"
+        self.assertTrue(TestVM.test(input, expect, 465))
+
+    def test_bor_true_true(self):
+        input = """[[var(x, boolean), var(y, boolean)],[],[assign(x, true), assign(y, true), if(bor(x, y), [call(writeStrLn, [str("x or y is true")])], [call(writeStrLn, [str("x and y are false")])])]]."""
+        expect = "x or y is true\n"
+        self.assertTrue(TestVM.test(input, expect, 466))
+
+    def test_bor_true_false(self):
+        input = """[[var(x, boolean), var(y, boolean)],[],[assign(x, true), assign(y, false), if(bor(x, y), [call(writeStrLn, [str("x or y is true")])], [call(writeStrLn, [str("x and y are false")])])]]."""
+        expect = "x or y is true\n"
+        self.assertTrue(TestVM.test(input, expect, 467))
+
+    def test_bor_false_true(self):
+        input = """[[var(x, boolean), var(y, boolean)],[],[assign(x, false), assign(y, true), if(bor(x, y), [call(writeStrLn, [str("x or y is true")])], [call(writeStrLn, [str("x and y are false")])])]]."""
+        expect = "x or y is true\n"
+        self.assertTrue(TestVM.test(input, expect, 468))
+
+    def test_bor_false_false(self):
+        input = """[[var(x, boolean), var(y, boolean)],[],[assign(x, false), assign(y, false), if(bor(x, y), [call(writeStrLn, [str("x or y is true")])], [call(writeStrLn, [str("x and y are false")])])]]."""
+        expect = "x and y are false\n"
+        self.assertTrue(TestVM.test(input, expect, 469))
+
+    def test_band_short_circuit(self):
+        input = """[[var(x, integer), var(y, integer)],[],[assign(x, 0), assign(y, 1), if(band(less(x, y), less(y, x)), [call(writeStrLn, [str("Invalid")])], [call(writeStrLn, [str("Valid")])])]]."""
+        expect = "Valid\n"
+        self.assertTrue(TestVM.test(input, expect, 470))
+
+    def test_bor_short_circuit(self):
+        input = """[[var(x, integer), var(y, integer)],[],[assign(x, 1), assign(y, 0), if(bor(less(x, y), less(y, x)), [call(writeStrLn, [str("Valid")])], [call(writeStrLn, [str("Invalid")])])]]."""
+        expect = "Valid\n"
+        self.assertTrue(TestVM.test(input, expect, 471))

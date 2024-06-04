@@ -363,6 +363,43 @@ reduce(config(eql(E1, E2), Env), config(R, Env)) :-
     ;  R = false
     ), !.
 
+% Reduce for bnot (logical negation)
+reduce(config(bnot(E1), Env), config(R, Env)) :-
+    reduce_all(config(E1, Env), config(V1, Env)),
+    get_type_expression(Env, V1, boolean),
+    (  V1 == true
+    -> R = false
+    ;  R = true
+    ), !.
+
+% Reduce for band (logical AND)
+reduce(config(band(E1, E2), Env), config(R, Env)) :-
+    reduce_all(config(E1, Env), config(V1, Env)),
+    get_type_expression(Env, V1, boolean),
+    (  V1 == false
+    -> R = false
+    ;  reduce_all(config(E2, Env), config(V2, Env)),
+       get_type_expression(Env, V2, boolean),
+       (  V2 == false
+       -> R = false
+       ;  R = true
+       )
+    ), !.
+
+% Reduce for bor (logical OR)
+reduce(config(bor(E1, E2), Env), config(R, Env)) :-
+    reduce_all(config(E1, Env), config(V1, Env)),
+    get_type_expression(Env, V1, boolean),
+    (  V1 == true
+    -> R = true
+    ;  reduce_all(config(E2, Env), config(V2, Env)),
+       get_type_expression(Env, V2, boolean),
+       (  V2 == true
+       -> R = true
+       ;  R = false
+       )
+    ), !.
+
 reduce(config(I, Env), config(V, Env)) :-
     atom1(I),
     lookup(Env, I, id(I, _, V)), !.
